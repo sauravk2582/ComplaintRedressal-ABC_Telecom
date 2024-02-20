@@ -1,0 +1,155 @@
+There are a lot of Files for FrontEnd as well Backend. It's very difficult to put all the code.
+GitHub Link will be shared, Please have all the codes from there.
+
+I am putting only Few code of frontEnd/backEnd and everything will be on my gitHub account.
+
+FrontEnd Code:
+**********Complaint-Engineer.component.html**************
+
+<div class="row">
+    <div class="col-md-12">
+
+        <div class="card-header">
+            <h1>Complaint Details:</h1>
+        </div>
+
+
+
+        <div class="card-body" style="background-color: aliceblue;">
+            <table class="table table-info">
+                <tr style="text-align: center;">
+                    <th style="padding: 5px;">ID</th>
+                    <th style="padding: 5px;">Full Name</th>
+                    <th style="padding: 5px;">Heading</th>
+                    <th style="padding: 5px;">Details</th>
+                    <!-- <th style="padding: 5px;">Director</th>
+                    <th style="padding: 5px;">Language</th> -->
+                    <th style="padding: 10px;">Address</th>
+                    <th style="padding: 5px;">Pincode</th>
+                    <th style="padding: 5px;">complaintStatus</th>
+                    <th style="padding: 5px;">Operation</th>
+                </tr>
+
+                <tr style="text-align: center;" *ngFor="let c of complaintdetails">
+                    <ng-container *ngIf="c.pincode === '110025'">
+                        <td style="padding: 5px;">{{c.complaintId}}</td>
+                        <td style="padding: 5px;">{{c.fullname}}</td>
+                        <td style="padding: 5px;">{{c.heading}}</td>
+                        <td style="padding: 5px;">{{c.details}}</td>
+                        <td style="padding: 5px;">{{c.address}}</td>
+                        <!-- <td style="padding: 5px;">{{mt.director}}</td>
+        <td style="padding: 5px;">{{mt.language}}</td> -->
+                        <td style="padding: 5px;">{{c.pincode}}</td>
+                        <td style="padding: 5px;">{{c.complaintStatus}}</td>
+                        <td style="padding: 5px;">
+                            <button mat-raised-button color="primary" class="mb-2"
+                                (click)="wip(c.complaintId)">WIP</button>
+                            <button mat-raised-button color="primary" class="mb-2"
+                                (click)="Reviewed(c.complaintId)">Reviewed</button>
+                            <button mat-raised-button color="primary" class="ml-2"
+                                (click)="Resolved(c.complaintId)">Resolved</button>
+                        </td>
+
+                    </ng-container>
+                </tr>
+
+
+            </table>
+
+        </div>
+    </div>
+</div>
+
+BackEnd Code:
+************ComplaintController************
+
+package com.simplilearn.finalphase2.controller;
+
+import java.util.List;
+
+
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.simplilearn.finalphase2.entity.Complaint;
+import com.simplilearn.finalphase2.service.ComplaintService;
+
+@RestController
+@CrossOrigin
+public class ComplaintController {
+	@Autowired
+	private ComplaintService complaintService;
+	
+	//only customer can register complaint
+	@PreAuthorize("hasRole('Customer')")
+	@PostMapping(value= {"/add/new/complaint"})
+	public Complaint addNewComplaint(@RequestBody Complaint complaint) {
+		return complaintService.addNewComplaint(complaint);
+		
+	}
+	
+	//only admin can delete any complaint if as required
+	@PreAuthorize("hasRole('Admin')")
+	@DeleteMapping(value= {"/delete/complaint/{complaintId}"})
+	public void deleteComplaint(@PathVariable ("complaintId") Integer complaintId) {
+		complaintService.deleteComplaint(complaintId);
+	}
+	
+	//only admin and manager can get all complaints list
+	@PreAuthorize("hasAnyRole('Admin','Manager','Customer')")
+	@GetMapping(value= {"/get/complaint/list"})
+	public List<Complaint> getAllComplaints() {
+		List<Complaint> complaints = complaintService.getAllComplaint();
+//		System.out.println("Size of complaints list id: "+ complaints.size());
+		
+		return complaints;
+	}
+	
+	@PreAuthorize("hasAnyRole('Engineer')")
+	@GetMapping(value= {"/get/complaint/list/engineer"})
+	public List<Complaint> getAllComplaintsEngg() {
+		return complaintService.getAllComplaintsForEngineer();
+	}
+	
+	@PreAuthorize("hasAnyRole('Engineer')")
+	@GetMapping({"/markAsResolved/{complaintId}"})
+	public void markAsResolved(@PathVariable(name = "complaintId")Integer complaintId ) {     
+		complaintService.markAsResolved(complaintId);
+	}
+	
+	
+	@PreAuthorize("hasAnyRole('Engineer')")
+	@GetMapping({"/markAsWip/{complaintId}"})
+	public void markAsWip(@PathVariable(name = "complaintId")Integer complaintId ) {     
+		complaintService.markAsWip(complaintId);
+	}
+	
+	@PreAuthorize("hasAnyRole('Engineer')")
+	@GetMapping({"/markAsInReview/{complaintId}"})
+	public void markAsInReview(@PathVariable(name = "complaintId")Integer complaintId ) {     
+		complaintService.markAsInReview(complaintId);
+	}
+	
+	@GetMapping("/getComplaintById/{complaintId}")
+	public Complaint getComplaintById(@PathVariable Integer complaintId) {
+		return complaintService.getComplaintById(complaintId);
+
+	}
+	
+	@PreAuthorize("hasRole('Customer')")
+	@GetMapping({"/get/mycomplaints"})
+	public List<Complaint> getMyComplaintDetails() {
+		return complaintService.getMyComplaintDetails();
+	}
+
+}
